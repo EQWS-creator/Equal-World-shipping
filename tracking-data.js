@@ -1,17 +1,13 @@
-const shipments = {
-  "EQWS123456": {
-    status: "In Transit",
-    origin: "New York, USA",
-    destination:holy karbala ", Iraq",
-    location: "Iraq international airport, Iraq",
-    estimatedDelivery: "September 17, 2026"
-  },
+EWS100001: {
+  status: "In Transit",
+  origin: "New York City, USA",
+  destination: "Holy Karbala, Iraq",
+  service: "International Express"
+}
 
-  "EQWS789012": {
-    status: "Delivered",
-    origin: "New York, USA",
-    destination: "iraq, iraq",
-    location: iraq", Iraq",
-    estimatedDelivery: "September 18, 2026"
+  EWS100002: {
+  status: "Deliver",
+  origin: "Baghdad international airport, IRAQ",
+  destination: "Holy Karbala, Iraq",
+  service: "International Express"
   }
-};

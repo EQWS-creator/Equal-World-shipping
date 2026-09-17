@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equal World Shipping Company</title>
+  <meta name="description" content="Equal World Shipping Company — worldwide shipping and logistics.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container nav">
+      <a class="brand" href="#home">
+        <img src="logo.jpg" alt="Equal World Shipping Company logo">
+        <span>Equal World Shipping Company</span>
+      </a>
+      <nav>
+        <a href="#home">Home</a>
+        <a href="#services">Services</a>
+        <a href="#tracking">Track Shipment</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section id="home" class="hero">
+      <div class="container hero-grid">
+        <div>
+          <p class="eyebrow">WORLDWIDE SHIPPING & LOGISTICS</p>
+          <h1>Moving your world, <span>one shipment at a time.</span></h1>
+          <p class="hero-text">Equal World Shipping Company provides worldwide shipping and logistics services for individuals and businesses.</p>
+          <div class="buttons">
+            <a class="btn primary" href="#tracking">Track a Shipment</a>
+            <a class="btn secondary" href="#contact">Contact Us</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <div class="card-icon">✈</div>
+          <h3>Worldwide Logistics</h3>
+          <p>Air, sea and land shipping support with shipment tracking.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="services" class="section">
+      <div class="container">
+        <p class="eyebrow">OUR SERVICES</p>
+        <h2>Shipping solutions for every journey</h2>
+        <div class="cards">
+          <article><div class="icon">✈</div><h3>Air Freight</h3><p>Fast international freight for time-sensitive shipments.</p></article>
+          <article><div class="icon">🚢</div><h3>Ocean Freight</h3><p>Flexible sea freight solutions for larger consignments.</p></article>
+          <article><div class="icon">🚚</div><h3>Land Transport</h3><p>Reliable ground transportation for regional deliveries.</p></article>
+          <article><div class="icon">📦</div><h3>Express Delivery</h3><p>Convenient delivery options for documents and packages.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="tracking" class="section tracking-section">
+      <div class="container">
+        <div class="tracking-box">
+          <p class="eyebrow">SHIPMENT TRACKING</p>
+          <h2>Track your shipment</h2>
+          <p>Enter your tracking number to view the current shipment record.</p>
+          <form id="trackingForm">
+            <input id="trackingNumber" type="text" placeholder="Enter tracking number" required>
+            <button class="btn primary" type="submit">Track Shipment</button>
+          </form>
+          <p class="demo-note">Demo website: tracking records below are sample data until a live shipping database/API is connected.</p>
+          <div id="trackingResult" class="tracking-result hidden"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section light">
+      <div class="container narrow">
+        <p class="eyebrow">ABOUT US</p>
+        <h2>Equal World Shipping Company</h2>
+        <p>We are a worldwide shipping and logistics company focused on helping customers move packages and freight across borders. Our website provides shipment tracking and customer contact information in one place.</p>
+        <div class="location">📍 New York City, USA</div>
+      </div>
+    </section>
+
+    <section id="contact" class="section">
+      <div class="container contact-grid">
+        <div>
+          <p class="eyebrow">CONTACT</p>
+          <h2>Get in touch</h2>
+          <p>For shipping questions, tracking assistance or service enquiries, contact Equal World Shipping Company.</p>
+        </div>
+        <div class="contact-card">
+          <p><strong>Email</strong><br><a href="mailto:johnsonmark42221@gmail.com">johnsonmark42221@gmail.com</a></p>
+          <p><strong>Telegram</strong><br><a href="https://t.me/Phillip_solomon" target="_blank" rel="noopener">@Phillip_solomon</a></p>
+          <p><strong>Location</strong><br>New York City, USA</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer">
+      <span>© <span id="year"></span> Equal World Shipping Company</span>
+      <span>Worldwide Shipping & Logistics</span>
+    </div>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -36,3 +36,20 @@ Customer registration and sign-in are independent from shipment tracking. Only t
 
 ## Testimonials and trust section
 The homepage now includes a customer-experience section with shipment tracking, live support, and customer-account trust points. The testimonial cards are explicitly labeled as sample feedback so they are not presented as verified customer reviews. Replace them with genuine customer feedback as you collect it.
+
+
+## Authentication and live-chat fix
+This version separates all three workflows:
+1. Shipment tracking — uses a tracking number only in the Track Shipment form.
+2. Customer authentication — email/password, Google OAuth, or Apple OAuth. No tracking number is read or required.
+3. Live Chat — name and email start the chat; the secure visitor token returned by the Edge Function is stored and sent for subsequent chat requests.
+
+### Google and Apple setup
+The website buttons are included, but OAuth providers must be enabled/configured in Supabase Authentication before they can complete sign-in.
+
+- Google: configure a Google OAuth Web client in Google Cloud and add the Supabase callback URL shown in the Supabase Google provider settings. Add the GitHub Pages site URL to the allowed origins/redirect URLs as appropriate.
+- Apple: configure Sign in with Apple in Apple Developer, create the required Services ID/key for web OAuth, and add the Supabase callback URL shown in the Supabase Apple provider settings.
+- Supabase Auth Redirect URLs must allow:
+  `https://eqws-creator.github.io/Equal-World-shipping/`
+
+Do not put Google client secrets, Apple private keys, Supabase service-role keys, Resend API keys, or AI API keys in this static website.

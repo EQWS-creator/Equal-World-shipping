@@ -159,3 +159,16 @@ footer{background:var(--navy);color:#cbd7e5;padding:25px 0}.footer{display:flex;
     padding: 56px 16px;
   }
 }
+
+
+/* Social account sign-in */
+.social-auth{margin-top:20px}
+.social-divider{display:flex;align-items:center;gap:12px;color:#718096;font-size:13px;margin:18px 0}
+.social-divider:before,.social-divider:after{content:"";height:1px;background:#dfe5ec;flex:1}
+.social-buttons{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.social-btn{width:100%;padding:13px 16px;border-radius:9px;border:1px solid #cbd5df;background:#fff;color:#172b4d;font-weight:800;cursor:pointer;font-size:14px}
+.social-btn:hover{transform:translateY(-1px);box-shadow:0 5px 15px rgba(7,27,51,.08)}
+.apple-btn{background:#111;color:#fff;border-color:#111}
+.google-btn{background:#fff}
+.social-note{text-align:center;margin-top:12px}
+@media(max-width:600px){.social-buttons{grid-template-columns:1fr}}

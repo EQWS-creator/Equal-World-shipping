@@ -3,9 +3,16 @@ const API = "https://ypedqbffumjwccqmgauo.supabase.co/functions/v1/equal-world-a
 document.getElementById("year").textContent = new Date().getFullYear();
 
 async function apiCall(action, payload = {}) {
+  const headers = {"Content-Type": "application/json"};
+  const visitorToken = sessionStorage.getItem("eqws_visitor_token");
+  const visitorActions = new Set(["chat_messages", "chat_message"]);
+  if (visitorToken && visitorActions.has(action)) {
+    headers.Authorization = `Bearer ${visitorToken}`;
+  }
+
   const response = await fetch(API, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers,
     body: JSON.stringify({action, ...payload})
   });
   const data = await response.json().catch(() => ({}));
@@ -62,7 +69,14 @@ const chatBody = document.getElementById("chatBody");
 const chatError = document.getElementById("chatError");
 const chatStatus = document.getElementById("chatStatus");
 let chatSessionId = sessionStorage.getItem("eqws_chat_session");
+let chatVisitorToken = sessionStorage.getItem("eqws_visitor_token");
 let chatPoll = null;
+
+// A stored session is only usable when its signed visitor token is also present.
+if (chatSessionId && !chatVisitorToken) {
+  sessionStorage.removeItem("eqws_chat_session");
+  chatSessionId = null;
+}
 
 chatToggle.addEventListener("click", () => chatPanel.classList.remove("hidden"));
 chatClose.addEventListener("click", () => chatPanel.classList.add("hidden"));
@@ -81,6 +95,18 @@ async function loadChatMessages() {
       </div>`).join("");
     box.scrollTop = box.scrollHeight;
   } catch (err) {
+    if (/token|unauthorized|forbidden|visitor/i.test(err.message || "")) {
+      sessionStorage.removeItem("eqws_chat_session");
+      sessionStorage.removeItem("eqws_visitor_token");
+      chatSessionId = null;
+      chatVisitorToken = null;
+      chatBody.classList.add("hidden");
+      chatStart.classList.remove("hidden");
+      chatStatus.textContent = "";
+      chatError.textContent = "Your chat session expired. Please start a new chat.";
+      clearInterval(chatPoll);
+      return;
+    }
     chatStatus.textContent = "Unable to refresh messages right now.";
   }
 }
@@ -97,8 +123,10 @@ async function startChat() {
   try {
     const data = await apiCall("chat_start", {visitor_name, visitor_email});
     chatSessionId = data.session_id || data.session?.id;
-    if (!chatSessionId) throw new Error("Unable to start chat.");
+    chatVisitorToken = data.visitor_token || data.visitorToken;
+    if (!chatSessionId || !chatVisitorToken) throw new Error("Unable to start a secure chat session.");
     sessionStorage.setItem("eqws_chat_session", chatSessionId);
+    sessionStorage.setItem("eqws_visitor_token", chatVisitorToken);
     chatStart.classList.add("hidden");
     chatBody.classList.remove("hidden");
     await loadChatMessages();

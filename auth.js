@@ -1,5 +1,6 @@
 const SUPABASE_URL = "https://ypedqbffumjwccqmgauo.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yaUpKhGqxpHxRwEIJrSO3g_bIVhMNHE";
+const PUBLIC_URL = "https://eqws-creator.github.io/Equal-World-shipping/";
 
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
@@ -7,6 +8,10 @@ const supabaseClient = window.supabase.createClient(
 );
 
 const authStatus = document.getElementById("auth-status");
+
+function safe(value) {
+  return String(value ?? "").replace(/[&<>"']/g, "");
+}
 
 function showAuth(message, ok = false) {
   authStatus.innerHTML = `<div class="auth-message ${ok ? "ok" : "error"}">${message}</div>`;
@@ -17,7 +22,7 @@ async function refreshAuth() {
 
   if (session) {
     showAuth(
-      `Signed in as <b>${String(session.user.email || "").replace(/[&<>"']/g, "")}</b> · ` +
+      `Signed in as <b>${safe(session.user.email)}</b> · ` +
       `<button id="logout-button" class="link-button" type="button">Log out</button>`,
       true
     );
@@ -30,6 +35,8 @@ async function refreshAuth() {
   }
 }
 
+// IMPORTANT: Authentication is completely independent from shipment tracking.
+// This form never reads, validates, requires, or submits #trackingNumber.
 document.getElementById("signup-form").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -37,12 +44,17 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
   const email = document.getElementById("signup-email").value.trim();
   const password = document.getElementById("signup-password").value;
 
+  if (password.length < 8) {
+    showAuth("Please use a password with at least 8 characters.");
+    return;
+  }
+
   const { error } = await supabaseClient.auth.signUp({
     email,
     password,
     options: {
       data: { full_name: name },
-      emailRedirectTo: "https://eqws-creator.github.io/Equal-World-shipping/"
+      emailRedirectTo: PUBLIC_URL
     }
   });
 
@@ -52,8 +64,7 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
   }
 
   showAuth(
-    `Registration started for <b>${email.replace(/[&<>"']/g, "")}</b>. ` +
-    `Check your inbox and click the verification link before signing in.`,
+    `Registration started for <b>${safe(email)}</b>. Check your inbox and click the verification link before signing in.`,
     true
   );
   e.target.reset();
@@ -62,8 +73,7 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
 document.getElementById("login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  // IMPORTANT: login uses only email + password.
-  // It never reads, validates, or submits the shipment tracking field.
+  // IMPORTANT: Login uses only email + password. No tracking code is involved.
   const email = document.getElementById("login-email").value.trim();
   const password = document.getElementById("login-password").value;
 
@@ -84,8 +94,7 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
   }
 
   showAuth(
-    `Welcome back, <b>${String(data.user.email || "").replace(/[&<>"']/g, "")}</b>. ` +
-    `Your verified account is active.`,
+    `Welcome back, <b>${safe(data.user.email)}</b>. Your verified account is active.`,
     true
   );
 });
@@ -99,13 +108,32 @@ document.getElementById("reset-button").addEventListener("click", async () => {
   }
 
   const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: "https://eqws-creator.github.io/Equal-World-shipping/#account"
+    redirectTo: PUBLIC_URL + "#account"
   });
 
   showAuth(
     error ? error.message : "Password reset instructions have been sent to your email.",
     !error
   );
+});
+
+async function signInWithProvider(provider) {
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: PUBLIC_URL
+    }
+  });
+
+  if (error) showAuth(error.message);
+}
+
+document.getElementById("google-auth-button").addEventListener("click", () => {
+  signInWithProvider("google");
+});
+
+document.getElementById("apple-auth-button").addEventListener("click", () => {
+  signInWithProvider("apple");
 });
 
 supabaseClient.auth.onAuthStateChange(() => refreshAuth());

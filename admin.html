@@ -1,1 +1,84 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Equal World Admin</title><link rel="stylesheet" href="admin.css"></head><body><main class="admin"><h1>Equal World Shipping Admin</h1><p>This dashboard is included in the project ZIP. Use your existing admin credentials.</p><p>For the full shipment and chat management interface, keep the admin dashboard files from your previously committed project if present.</p><a href="index.html">← Back to website</a></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Equal World Shipping — Admin Dashboard</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div id="loginView" class="screen">
+  <div class="login-card">
+    <div class="brand">Equal World Shipping</div>
+    <h1>Admin Dashboard</h1>
+    <p>Sign in to manage shipments and customer chat.</p>
+    <form id="loginForm">
+      <label>Email<input id="adminEmail" type="email" autocomplete="username" required></label>
+      <label>Password<input id="adminPassword" type="password" autocomplete="current-password" required></label>
+      <button type="submit">Sign in</button>
+      <p id="loginError" class="error"></p>
+    </form>
+  </div>
+</div>
+
+<div id="appView" class="app hidden">
+  <header class="topbar">
+    <div><strong>Equal World Shipping</strong><span>Admin Control Center</span></div>
+    <button id="logoutBtn" class="ghost">Log out</button>
+  </header>
+  <main>
+    <section class="stats">
+      <div class="stat"><span>Total shipments</span><strong id="statShipments">0</strong></div>
+      <div class="stat"><span>In transit</span><strong id="statTransit">0</strong></div>
+      <div class="stat"><span>Delivered</span><strong id="statDelivered">0</strong></div>
+      <div class="stat"><span>Open chats</span><strong id="statChats">0</strong></div>
+    </section>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="shipments">Shipments</button>
+      <button class="tab" data-tab="create">Create shipment</button>
+      <button class="tab" data-tab="chat">Customer chat</button>
+    </div>
+
+    <section id="shipmentsTab" class="tab-panel">
+      <div class="panel-head"><div><h2>Shipments</h2><p>Search, update and add tracking events.</p></div><button id="refreshShipments">Refresh</button></div>
+      <input id="shipmentSearch" class="search" placeholder="Search tracking code, sender, receiver, origin or destination">
+      <div id="shipmentList" class="cards"></div>
+    </section>
+
+    <section id="createTab" class="tab-panel hidden">
+      <div class="panel-head"><div><h2>Create shipment</h2><p>Create a new trackable shipment in Supabase.</p></div></div>
+      <form id="createShipmentForm" class="form-grid">
+        <label>Tracking code<input name="tracking_code" placeholder="EWS123456789" required></label>
+        <label>Service<input name="service" value="Express Worldwide"></label>
+        <label>Sender name<input name="sender_name"></label>
+        <label>Receiver name<input name="receiver_name"></label>
+        <label>Receiver email<input name="receiver_email" type="email"></label>
+        <label>Origin<input name="origin" placeholder="Lagos, Nigeria"></label>
+        <label>Destination<input name="destination" placeholder="London, United Kingdom" required></label>
+        <label>Status<select name="status"><option>Shipment Created</option><option>Picked Up</option><option>In Transit</option><option>Out for Delivery</option><option>Delivered</option><option>Delayed</option></select></label>
+        <label>Estimated delivery<input name="estimated_delivery" type="date"></label>
+        <label>Current location<input name="location"></label>
+        <label class="wide">Description<textarea name="description" rows="3" placeholder="Initial tracking note"></textarea></label>
+        <button class="wide" type="submit">Create shipment</button>
+      </form>
+      <p id="createResult" class="notice"></p>
+    </section>
+
+    <section id="chatTab" class="tab-panel hidden">
+      <div class="panel-head"><div><h2>Customer Live Chat</h2><p>Open a conversation, read messages and reply as support.</p></div><button id="refreshChats">Refresh</button></div>
+      <div class="chat-layout">
+        <aside id="chatSessions" class="session-list"></aside>
+        <div class="conversation">
+          <div id="chatHeader" class="conversation-head">Select a conversation</div>
+          <div id="adminMessages" class="messages"></div>
+          <form id="replyForm" class="reply hidden"><input id="replyInput" placeholder="Type your reply…" maxlength="2000" required><button>Send</button></form>
+          <p id="chatResult" class="notice"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="admin.js"></script>
+</body>
+</html>

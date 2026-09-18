@@ -62,30 +62,8 @@ const chatStatus = document.getElementById("chatStatus");
 let chatSessionId = sessionStorage.getItem("eqws_chat_session");
 let chatPoll = null;
 
-function openChat() {
-  chatPanel.classList.remove("hidden");
-  chatToggle.setAttribute("aria-expanded", "true");
-  setTimeout(() => {
-    const nameField = document.getElementById("chatName");
-    if (!chatSessionId && nameField) nameField.focus();
-  }, 50);
-}
-
-function closeChat() {
-  chatPanel.classList.add("hidden");
-  chatToggle.setAttribute("aria-expanded", "false");
-}
-
-chatToggle.setAttribute("aria-expanded", "false");
-chatToggle.addEventListener("click", openChat);
-chatClose.addEventListener("click", closeChat);
-
-// Keep the chat accessible by keyboard as well.
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && !chatPanel.classList.contains("hidden")) {
-    closeChat();
-  }
-});
+chatToggle.addEventListener("click", () => chatPanel.classList.remove("hidden"));
+chatClose.addEventListener("click", () => chatPanel.classList.add("hidden"));
 
 async function loadChatMessages() {
   if (!chatSessionId) return;

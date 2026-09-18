@@ -176,3 +176,5 @@ footer{background:var(--navy);color:#cbd7e5;padding:25px 0}.footer{display:flex;
 .hidden{display:none!important}
 #verify-email-form{margin-top:16px}
 #verify-code{letter-spacing:.3em;text-align:center;font-weight:800}
+
+.auth-message{line-height:1.5}.auth-message.ok{border-radius:8px}.auth-note{line-height:1.5}

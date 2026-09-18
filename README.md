@@ -62,3 +62,16 @@ The customer registration flow now asks for a 6-digit email verification code an
 For Supabase to send a code instead of only a confirmation link, edit the **Confirm signup** email template in Supabase Auth and include `{{ .Token }}` in the email body. Supabase documents `{{ .Token }}` as the 6-digit OTP used for email verification. Also ensure the project's Auth email provider is configured and the GitHub Pages URL is in the Auth redirect allow list.
 
 The website itself does not contain an email secret. Do not place Resend API keys or Supabase service-role keys in frontend files.
+
+
+## Smoother account creation
+The signup flow now:
+- normalizes email addresses to lowercase;
+- does not ask for or use a tracking code;
+- shows a dedicated 6-digit verification step;
+- uses Supabase's signup-email resend flow rather than creating a separate OTP login session;
+- explains duplicate-account, invalid/expired-code, and rate-limit situations in customer-friendly language;
+- tells customers to check spam/junk folders;
+- keeps Google and Apple OAuth separate from email/password verification.
+
+For production reliability, configure Supabase's Auth email provider/SMTP and signup email template, and add the exact GitHub Pages URL to the Supabase Auth redirect allow list. Hosted Supabase projects require email confirmation by default, and redirect URLs must be configured for confirmation redirects.

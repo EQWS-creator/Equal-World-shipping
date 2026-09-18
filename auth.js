@@ -32,7 +32,7 @@ async function refreshAuth() {
 document.getElementById("signup-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const name = document.getElementById("signup-name").value.trim();
-  const email = document.getElementById("signup-email").value.trim();
+  const email = document.getElementById("signup-email").value.trim().toLowerCase();
   const password = document.getElementById("signup-password").value;
   if (password.length < 8) return showAuth("Please use a password with at least 8 characters.");
 
@@ -42,11 +42,20 @@ document.getElementById("signup-form").addEventListener("submit", async (e) => {
     options: { data: { full_name: name }, emailRedirectTo: PUBLIC_URL }
   });
 
-  if (error) return showAuth(error.message);
+  if (error) {
+    const msg = String(error.message || "");
+    if (/already registered|already exists|user already registered/i.test(msg)) {
+      document.getElementById("verify-email").value = email;
+      setVerifyVisible(true);
+      return showAuth("This email is already registered. If it is not verified yet, request a new verification code below. If you already verified it, use Sign In.", false);
+    }
+    return showAuth(msg);
+  }
 
   document.getElementById("verify-email").value = email;
+  document.getElementById("verify-code").value = "";
   setVerifyVisible(true);
-  showAuth(`A 6-digit verification code was sent to <b>${safe(email)}</b>. Enter it below to verify your email.`, true);
+  showAuth(`A 6-digit verification code was sent to <b>${safe(email)}</b>. Check your inbox and spam/junk folder, then enter the code below.`, true);
 });
 
 document.getElementById("verify-email-form").addEventListener("submit", async (e) => {
@@ -62,7 +71,13 @@ document.getElementById("verify-email-form").addEventListener("submit", async (e
     type: "email"
   });
 
-  if (error) return showAuth(error.message);
+  if (error) {
+    const msg = String(error.message || "");
+    if (/expired|invalid|incorrect/i.test(msg)) {
+      return showAuth("That verification code is invalid or expired. Request a new code and try again.");
+    }
+    return showAuth(msg);
+  }
 
   setVerifyVisible(false);
   showAuth(`Email verified successfully. Welcome, <b>${safe(data.user?.email || email)}</b>.`, true);
@@ -72,17 +87,22 @@ document.getElementById("resend-code-button").addEventListener("click", async ()
   const email = document.getElementById("verify-email").value.trim();
   if (!email) return showAuth("Enter your email address first.");
 
-  const { error } = await supabaseClient.auth.signInWithOtp({
-    email,
-    options: { shouldCreateUser: false }
+  const { error } = await supabaseClient.auth.resend({
+    type: "signup",
+    email
   });
-  if (error) return showAuth(error.message);
+  if (error) {
+    if (/rate limit|too many|security/i.test(error.message || "")) {
+      return showAuth("Please wait a moment before requesting another code. Check your inbox and spam/junk folder first.");
+    }
+    return showAuth(error.message);
+  }
   showAuth(`A new verification code was sent to <b>${safe(email)}</b>.`, true);
 });
 
 document.getElementById("login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const email = document.getElementById("login-email").value.trim();
+  const email = document.getElementById("login-email").value.trim().toLowerCase();
   const password = document.getElementById("login-password").value;
 
   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });

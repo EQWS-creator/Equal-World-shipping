@@ -1,142 +1,74 @@
 const API = "https://ypedqbffumjwccqmgauo.supabase.co/functions/v1/equal-world-api-v2";
 
-document.getElementById("year").textContent = new Date().getFullYear();
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-async function apiCall(action, payload = {}, authToken = "") {
-  const headers = {"Content-Type": "application/json"};
-  if (authToken) headers.Authorization = `Bearer ${authToken}`;
-  const response = await fetch(API, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({action, ...payload})
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok || data.error) throw new Error(data.error || "Request failed");
+async function api(path, options={}) {
+  const r = await fetch(`${API}/${path}`, {headers: {"Content-Type":"application/json", ...(options.headers||{})}, ...options});
+  const data = await r.json().catch(()=>({}));
+  if (!r.ok) throw new Error(data.error || "Request failed");
   return data;
 }
 
-function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, ch => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[ch]));
-}
-
-const trackingForm = document.getElementById("trackingForm");
-trackingForm.addEventListener("submit", async (e) => {
+$("tracking-form").addEventListener("submit", async e => {
   e.preventDefault();
-  const number = document.getElementById("trackingNumber").value.trim().toUpperCase();
-  const result = document.getElementById("trackingResult");
-  result.classList.remove("hidden");
-  result.innerHTML = "<p>Loading live shipment data…</p>";
+  const box = $("tracking-result");
+  box.innerHTML = "<p>Looking up shipment…</p>";
   try {
-    const data = await apiCall("track", {tracking_code: number});
-    const shipment = data.shipment || data;
-    const events = data.events || [];
-    const current = events.length ? events[events.length - 1] : null;
-    const mapPlace = current?.location || shipment.destination || "";
-    result.innerHTML = `
-      <h3>Shipment ${escapeHtml(shipment.tracking_code)}</h3>
-      <p><span class="status">${escapeHtml(shipment.status || "Unknown")}</span></p>
-      <p><strong>Origin:</strong> ${escapeHtml(shipment.origin || "—")}<br>
-      <strong>Current location:</strong> ${escapeHtml(mapPlace || "—")}<br>
-      <strong>Destination:</strong> ${escapeHtml(shipment.destination || "—")}<br>
-      <strong>Service:</strong> ${escapeHtml(shipment.service || "—")}<br>
-      <strong>Estimated delivery:</strong> ${escapeHtml(shipment.estimated_delivery || "—")}</p>
-      ${mapPlace ? `<p><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapPlace)}" target="_blank" rel="noopener">📍 View current location on Google Maps</a></p>` : ""}
-      <div class="timeline">${events.map(ev => `
-        <div><strong>${escapeHtml(ev.status || "")}</strong><br>
-        <span>${escapeHtml(ev.location || "")}</span>
-        ${ev.description ? `<br><small>${escapeHtml(ev.description)}</small>` : ""}
-        ${ev.event_time ? `<br><small>${escapeHtml(new Date(ev.event_time).toLocaleString())}</small>` : ""}</div>
-      `).join("")}</div>`;
-  } catch (err) {
-    result.innerHTML = `<h3>Tracking number not found</h3><p>${escapeHtml(err.message)}</p>`;
-  }
+    const d = await api(`track?code=${encodeURIComponent($("tracking-code").value.trim())}`);
+    const s = d.shipment;
+    box.innerHTML = `<div class="tracking-card"><h3>${esc(s.tracking_code)}</h3>
+      <p><b>Status:</b> ${esc(s.status)}</p><p><b>Route:</b> ${esc(s.origin)} → ${esc(s.destination)}</p>
+      <p><b>Service:</b> ${esc(s.service)}</p><p><b>Estimated delivery:</b> ${esc(s.estimated_delivery || "To be confirmed")}</p>
+      <h4>Tracking events</h4>${(d.events||[]).map(x=>`<div class="event"><b>${esc(x.status)}</b> — ${esc(x.location)}<br><small>${esc(x.description||"")} · ${esc(x.event_time)}</small></div>`).join("")}</div>`;
+  } catch(err) { box.innerHTML = `<p class="error">${esc(err.message)}</p>`; }
 });
 
-const chatToggle = document.getElementById("chatToggle");
-const chatPanel = document.getElementById("chatPanel");
-const chatClose = document.getElementById("chatClose");
-const chatStart = document.getElementById("chatStart");
-const chatBody = document.getElementById("chatBody");
-const chatError = document.getElementById("chatError");
-const chatStatus = document.getElementById("chatStatus");
-let chatSessionId = sessionStorage.getItem("eqws_chat_session");
-let chatVisitorToken = sessionStorage.getItem("eqws_chat_token");
-let chatPoll = null;
+let chatSessionId = sessionStorage.getItem("ews_chat_session_id");
+let visitorToken = sessionStorage.getItem("ews_visitor_token");
+let pollTimer;
 
-chatToggle.addEventListener("click", () => chatPanel.classList.remove("hidden"));
-chatClose.addEventListener("click", () => chatPanel.classList.add("hidden"));
-
-async function loadChatMessages() {
-  if (!chatSessionId) return;
+function renderMessage(m) {
+  const mine = m.sender === "visitor";
+  return `<div class="msg ${mine ? "mine" : "agent"}"><span>${esc(m.message)}</span><small>${new Date(m.sent_at).toLocaleString()}</small></div>`;
+}
+async function loadChat() {
+  if (!chatSessionId || !visitorToken) return;
   try {
-    const data = await apiCall("chat_messages", {session_id: chatSessionId}, chatVisitorToken);
-    const messages = data.messages || [];
-    const box = document.getElementById("chatMessages");
-    box.innerHTML = messages.map(m => `
-      <div class="chat-message ${m.sender === "visitor" ? "visitor" : "agent"}">
-        <strong>${m.sender === "visitor" ? "You" : "Support"}</strong>
-        <p>${escapeHtml(m.message)}</p>
-        <small>${m.sent_at ? escapeHtml(new Date(m.sent_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})) : ""}</small>
-      </div>`).join("");
-    box.scrollTop = box.scrollHeight;
-  } catch (err) {
-    chatStatus.textContent = "Unable to refresh messages right now.";
-  }
+    const d = await api(`chat_messages?session_id=${encodeURIComponent(chatSessionId)}`, {headers:{Authorization:`Bearer ${visitorToken}`}});
+    $("chat-messages").innerHTML = (d.messages||[]).map(renderMessage).join("");
+    $("chat-messages").scrollTop = $("chat-messages").scrollHeight;
+  } catch {}
+}
+$("chat-toggle").onclick = () => { $("chat-panel").hidden = false; $("chat-toggle").style.display="none"; loadChat(); };
+$("chat-close").onclick = () => { $("chat-panel").hidden = true; $("chat-toggle").style.display="block"; };
+
+if (chatSessionId && visitorToken) {
+  $("chat-start-form").hidden = true; $("chat-message-form").hidden = false;
+  pollTimer = setInterval(loadChat, 5000);
 }
 
-async function startChat() {
-  const visitor_name = document.getElementById("chatName").value.trim();
-  const visitor_email = document.getElementById("chatEmail").value.trim();
-  chatError.textContent = "";
-  if (!visitor_name || !visitor_email) {
-    chatError.textContent = "Please enter your name and email.";
-    return;
-  }
-  try {
-    const data = await apiCall("chat_start", {visitor_name, visitor_email});
-    chatSessionId = data.session_id || data.session?.id;
-    chatVisitorToken = data.visitor_token || "";
-    if (!chatSessionId || !chatVisitorToken) throw new Error("Unable to start a secure chat session.");
-    sessionStorage.setItem("eqws_chat_session", chatSessionId);
-    sessionStorage.setItem("eqws_chat_token", chatVisitorToken);
-    chatStart.classList.add("hidden");
-    chatBody.classList.remove("hidden");
-    await loadChatMessages();
-    clearInterval(chatPoll);
-    chatPoll = setInterval(loadChatMessages, 5000);
-  } catch (err) {
-    chatError.textContent = err.message;
-  }
-}
-
-document.getElementById("chatStartBtn").addEventListener("click", startChat);
-
-document.getElementById("chatForm").addEventListener("submit", async (e) => {
+$("chat-start-form").addEventListener("submit", async e => {
   e.preventDefault();
-  const input = document.getElementById("chatInput");
-  const message = input.value.trim();
-  if (!message || !chatSessionId) return;
-  chatStatus.textContent = "Sending…";
+  $("chat-status").textContent = "Starting secure chat…";
   try {
-    await apiCall("chat_message", {session_id: chatSessionId, message}, chatVisitorToken);
-    input.value = "";
-    chatStatus.textContent = "";
-    await loadChatMessages();
-  } catch (err) {
-    chatStatus.textContent = err.message;
-  }
+    const d = await api("chat_start", {method:"POST", body:JSON.stringify({name:$("chat-name").value.trim(), email:$("chat-email").value.trim()})});
+    chatSessionId = d.session_id; visitorToken = d.visitor_token;
+    sessionStorage.setItem("ews_chat_session_id", chatSessionId);
+    sessionStorage.setItem("ews_visitor_token", visitorToken);
+    $("chat-start-form").hidden = true; $("chat-message-form").hidden = false;
+    $("chat-status").textContent = "Connected to support";
+    await loadChat();
+    clearInterval(pollTimer); pollTimer = setInterval(loadChat, 5000);
+  } catch(err) { $("chat-status").textContent = err.message; }
 });
 
-if (chatSessionId && !chatVisitorToken) {
-  sessionStorage.removeItem("eqws_chat_session");
-  chatSessionId = null;
-}
-
-if (chatSessionId && chatVisitorToken) {
-  chatStart.classList.add("hidden");
-  chatBody.classList.remove("hidden");
-  loadChatMessages();
-  chatPoll = setInterval(loadChatMessages, 5000);
-}
+$("chat-message-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const input = $("chat-message");
+  const message = input.value.trim(); if (!message) return;
+  try {
+    await api("chat_message", {method:"POST", headers:{Authorization:`Bearer ${visitorToken}`}, body:JSON.stringify({session_id:chatSessionId, message})});
+    input.value = ""; await loadChat();
+  } catch(err) { $("chat-status").textContent = err.message; }
+});

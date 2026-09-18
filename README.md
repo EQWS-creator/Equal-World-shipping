@@ -1,33 +1,21 @@
-# Equal World Shipping Company
+# Equal World Shipping
 
-Updated GitHub Pages frontend with live shipment tracking and customer live chat.
+## Homepage live chat
+The live chat is permanently integrated into `index.html` as a floating button and chat window. It uses the deployed Supabase Edge Function `equal-world-api-v2`.
 
-## Connected backend
-Supabase Edge Function:
-`https://ypedqbffumjwccqmgauo.supabase.co/functions/v1/equal-world-api-v2`
+The visitor receives a signed visitor token from `chat_start`; subsequent message requests use that token. No Supabase service-role key is placed in the frontend.
 
-The frontend uses the public API endpoint only. Supabase service-role/secret keys are not included in this project.
+## GitHub Pages
+Keep `logo.jpg` in the repository. Upload/replace the website files from this ZIP, then publish the repository with GitHub Pages.
 
-## Live chat
-Visitors click the floating 💬 button, enter their name and email, and can send messages. The page checks for new support replies every 5 seconds.
-
-The existing Supabase backend stores chat sessions and messages.
-
-## Tracking
-The tracking form now reads shipment records from the Supabase backend rather than the old demo JavaScript object.
-
-Demo tracking code currently seeded in the database:
-`SWC123456789`
-
-## Third-party links
-- Google Maps links open location searches in Google Maps.
-- Telegram opens the company's Telegram contact.
-- Email uses a mailto link.
-
-## Deployment
-This project remains compatible with GitHub Pages because the frontend is plain HTML/CSS/JavaScript.
-
-Important: before treating the chat as production-grade, secure the visitor chat session with a signed visitor token on the backend and restrict CORS to the deployed site origin. Resend remains in development mode until a verified sending domain/address is configured.
+## Tracking test
+Use tracking code `SWC123456789`.
 
 ## Security
-The live chat now uses a signed, expiring visitor token tied to its chat session. Public tracking returns only customer-safe shipment fields, and CORS is restricted to the configured website origin. Keep server secrets such as the Supabase service-role key, ADMIN_SESSION_SECRET, and Resend API key out of GitHub and frontend JavaScript.
+Do not put `SUPABASE_SERVICE_ROLE_KEY`, Resend API keys, or admin session secrets in browser JavaScript or GitHub Pages. Configure secrets server-side in Supabase.
+
+## Resend
+Resend remains suitable for development/testing until a verified sending domain is available.
+
+## Google Maps
+Use normal Google Maps links from shipment locations in the admin workflow. A Google Maps embed API key is not required for simple clickable map links.

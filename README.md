@@ -32,3 +32,7 @@ Important: before treating the chat as production-grade, secure the visitor chat
 
 ### Important separation
 Customer registration and sign-in are independent from shipment tracking. Only the Track Shipment form reads a tracking code. Sign-in uses email and password only; the customer auth code never reads or submits the tracking-number field.
+
+
+## Testimonials and trust section
+The homepage now includes a customer-experience section with shipment tracking, live support, and customer-account trust points. The testimonial cards are explicitly labeled as sample feedback so they are not presented as verified customer reviews. Replace them with genuine customer feedback as you collect it.

@@ -24,3 +24,7 @@ Deploy this package as the customer website repository, for example:
 `https://eqws-creator.github.io/Equal-World-shipping/`
 
 Keep the admin application in its separate repository and deployment.
+
+## Production authentication
+
+See `AUTH_SETUP.md` for the required Supabase Site URL, redirect URLs, and email verification template settings. The live customer authentication flow uses the GitHub Pages production URL and does not use `localhost:3000`.

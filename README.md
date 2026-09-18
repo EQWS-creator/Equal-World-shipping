@@ -76,20 +76,6 @@ The signup flow now:
 
 For production reliability, configure Supabase's Auth email provider/SMTP and signup email template, and add the exact GitHub Pages URL to the Supabase Auth redirect allow list. Hosted Supabase projects require email confirmation by default, and redirect URLs must be configured for confirmation redirects.
 
-## Email confirmation page fix
 
-The GitHub Pages site must contain `confirm.html` in the repository root before this URL can work:
-`https://eqws-creator.github.io/Equal-World-shipping/confirm.html`
-
-For the Supabase **Confirm signup** email template, use this link so Supabase supplies the real token hash:
-
-```html
-<p><a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email">Confirm email address</a></p>
-```
-
-Because this project sends `emailRedirectTo` as the website root, that produces a link to `confirm.html` when `redirectTo` is configured as:
-`https://eqws-creator.github.io/Equal-World-shipping/confirm.html`
-
-Alternatively, for the most robust static-site flow, use Supabase's built-in `{{ .ConfirmationURL }}` in the email template. Supabase documents `{{ .ConfirmationURL }}` as the generated confirmation URL and `{{ .TokenHash }}` as the value used to build a custom confirmation link.
-
-After uploading/committing `confirm.html` to GitHub Pages, wait for the Pages deployment to finish before testing the link again.
+## Friendly admin dashboard
+The admin control center now has a mobile-friendly overview, quick actions, clearer statistics, recent activity cards, improved shipment management, and a more approachable live-chat interface. Admin authentication remains completely separate from customer authentication and shipment tracking.

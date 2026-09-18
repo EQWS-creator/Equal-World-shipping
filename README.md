@@ -111,5 +111,11 @@ The invite flow attempts to send an email through Resend when `RESEND_API_KEY` a
 Both tables have RLS enabled and public `anon`/`authenticated` access revoked. They are accessed through the protected Edge Function.
 
 
+## Admin dashboard access
+
+The Admin Control Center is a separate entry point at `admin.html`. It does not use the customer tracking form and never asks an administrator for a shipment tracking code to sign in. Tracking codes are used only for shipment lookup/management inside the Shipments area.
+
+If the live GitHub Pages site still shows a tracking-code prompt before the admin login, deploy the updated `admin.html` and `auth.html` from this ZIP and open the direct `admin.html` page.
+
 ## Live Chat + Admin Messages
 The floating Live Chat button is connected to the Admin Dashboard Messages inbox. Customer conversations are separate per visitor, while admins see them together in the shared Messages inbox. Customer chat refreshes every 3 seconds and the admin inbox refreshes every 4 seconds. See `LIVE_CHAT_SETUP.md`.

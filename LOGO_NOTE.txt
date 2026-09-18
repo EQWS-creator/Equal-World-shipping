@@ -1,1 +1,1 @@
-Keep your existing logo.jpg in the repository. It is referenced by index.html but is not included in this ZIP.
+Keep the existing logo.jpg in your GitHub repository; it is referenced by index.html and is not included here.

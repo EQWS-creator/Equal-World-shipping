@@ -71,6 +71,8 @@ const chatStatus = document.getElementById("chatStatus");
 let chatSessionId = sessionStorage.getItem("eqws_chat_session");
 let chatVisitorToken = sessionStorage.getItem("eqws_visitor_token");
 let chatPoll = null;
+let chatRefreshBusy = false;
+let chatLastMessageCount = 0;
 
 // A stored session is only usable when its signed visitor token is also present.
 if (chatSessionId && !chatVisitorToken) {
@@ -78,22 +80,36 @@ if (chatSessionId && !chatVisitorToken) {
   chatSessionId = null;
 }
 
-chatToggle.addEventListener("click", () => chatPanel.classList.remove("hidden"));
-chatClose.addEventListener("click", () => chatPanel.classList.add("hidden"));
+chatToggle.addEventListener("click", () => {
+  chatPanel.classList.remove("hidden");
+  chatToggle.setAttribute("aria-expanded", "true");
+  setTimeout(() => (chatSessionId ? document.getElementById("chatInput") : document.getElementById("chatName"))?.focus(), 50);
+});
+chatClose.addEventListener("click", () => {
+  chatPanel.classList.add("hidden");
+  chatToggle.setAttribute("aria-expanded", "false");
+});
 
 async function loadChatMessages() {
-  if (!chatSessionId) return;
+  if (!chatSessionId || chatRefreshBusy) return;
+  chatRefreshBusy = true;
   try {
     const data = await apiCall("chat_messages", {session_id: chatSessionId});
     const messages = data.messages || [];
     const box = document.getElementById("chatMessages");
+    const wasNearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
     box.innerHTML = messages.map(m => `
       <div class="chat-message ${m.sender === "visitor" ? "visitor" : "agent"}">
         <strong>${m.sender === "visitor" ? "You" : "Support"}</strong>
         <p>${escapeHtml(m.message)}</p>
         <small>${m.sent_at ? escapeHtml(new Date(m.sent_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})) : ""}</small>
       </div>`).join("");
-    box.scrollTop = box.scrollHeight;
+    if (wasNearBottom || messages.length > chatLastMessageCount) box.scrollTop = box.scrollHeight;
+    if (messages.length > chatLastMessageCount && chatLastMessageCount > 0) {
+      chatStatus.textContent = "New support message received.";
+      setTimeout(() => { if (chatStatus.textContent === "New support message received.") chatStatus.textContent = ""; }, 3500);
+    }
+    chatLastMessageCount = messages.length;
   } catch (err) {
     if (/token|unauthorized|forbidden|visitor/i.test(err.message || "")) {
       sessionStorage.removeItem("eqws_chat_session");
@@ -108,6 +124,8 @@ async function loadChatMessages() {
       return;
     }
     chatStatus.textContent = "Unable to refresh messages right now.";
+  } finally {
+    chatRefreshBusy = false;
   }
 }
 
@@ -129,9 +147,10 @@ async function startChat() {
     sessionStorage.setItem("eqws_visitor_token", chatVisitorToken);
     chatStart.classList.add("hidden");
     chatBody.classList.remove("hidden");
+    chatLastMessageCount = 0;
     await loadChatMessages();
     clearInterval(chatPoll);
-    chatPoll = setInterval(loadChatMessages, 5000);
+    chatPoll = setInterval(loadChatMessages, 3000);
   } catch (err) {
     chatError.textContent = err.message;
   }
@@ -159,5 +178,5 @@ if (chatSessionId) {
   chatStart.classList.add("hidden");
   chatBody.classList.remove("hidden");
   loadChatMessages();
-  chatPoll = setInterval(loadChatMessages, 5000);
+  chatPoll = setInterval(loadChatMessages, 3000);
 }

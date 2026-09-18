@@ -1,29 +1,31 @@
-# Equal World Shipping — Friendly Admin Control Center
+# Equal World Shipping — Complete Admin Dashboard
 
-The admin dashboard is intentionally separate from customer accounts and shipment tracking.
+This package adds a mobile-friendly, admin-only dashboard to the existing Equal World Shipping frontend.
 
-## Admin flow
-- Admin opens `admin.html`.
-- Admin signs in with the dedicated admin email/password.
-- No shipment tracking code is requested for admin login.
-- The dashboard provides a friendly mobile-responsive overview, shipment management, shipment creation, Google Maps destination links, and customer live chat.
+## Connected backend
+Supabase Edge Function:
+https://ypedqbffumjwccqmgauo.supabase.co/functions/v1/equal-world-api-v2
 
-## Security
-The browser only stores the short-lived admin session token returned by the Edge Function. Supabase service-role/secret keys must remain server-side and must never be added to frontend files.
+The dashboard uses the existing custom admin authentication and does NOT contain a Supabase service-role key.
 
-The dashboard uses the existing `equal-world-api-v2` backend and its custom admin authentication.
+## Dashboard controls
+- Admin login
+- Shipment list/search
+- Create shipments
+- Edit shipment status and estimated delivery
+- Add tracking events and locations
+- Google Maps destination links
+- Customer Live Chat session list
+- Read customer messages
+- Reply as support
+- Dashboard statistics
 
-## Friendly dashboard improvements
-- Mobile navigation drawer
-- Welcome/overview screen
-- Quick actions
-- Clear shipment/chat statistics
-- Recent shipment and open-chat previews
-- Better empty states and success messages
-- Responsive shipment forms
-- Easier customer chat layout
-- Touch-friendly controls
-- No tracking-code field in admin authentication
+## GitHub Pages
+Add `admin.html`, `admin.js`, and `admin.css` to the repository. The dashboard will be available at:
+
+`https://eqws-creator.github.io/Equal-World-shipping/admin.html`
 
 ## Important
-This ZIP updates the frontend dashboard. It does not automatically commit changes to GitHub. Upload the files to your repository and commit them on the `main` branch.
+Keep the existing `logo.jpg` in the repository if you have one. This ZIP does not include private server secrets.
+
+The admin dashboard depends on the already-deployed `equal-world-api-v2` Edge Function and its configured admin credentials.

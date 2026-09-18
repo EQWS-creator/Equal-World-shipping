@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Sign Up & Sign In | Equal World Shipping</title>
+  <meta name="description" content="Create or sign in to your Equal World Shipping customer account before accessing the website.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="auth-page.css">
+</head>
+<body class="auth-page-body">
+  <main class="auth-page">
+    <div class="auth-shell">
+      <a class="auth-brand" href="auth.html"><img src="logo.jpg" alt="Equal World Shipping Company logo"><span>Equal World Shipping Company</span></a>
+      <div class="auth-intro">
+        <p class="eyebrow">CUSTOMER ACCESS</p>
+        <h1>Sign up before entering the website</h1>
+        <p>Create or sign in to your customer account. After successful sign-in, you will be taken to the Equal World Shipping homepage.</p>
+      </div>
+      <div id="auth-status" class="auth-status" aria-live="polite"></div>
+      <div class="auth-grid">
+        <form id="signup-form" class="auth-card">
+          <h2>Create your account</h2>
+          <label for="signup-name">Full name</label>
+          <input id="signup-name" type="text" required autocomplete="name" placeholder="Full name">
+          <label for="signup-email">Email address</label>
+          <input id="signup-email" type="email" required autocomplete="email" placeholder="you@example.com">
+          <label for="signup-password">Password</label>
+          <input id="signup-password" type="password" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
+          <button class="btn primary" type="submit">Create Account</button>
+          <p class="auth-note">No tracking code is required. We will email you a verification code.</p>
+        </form>
+
+        <form id="verify-email-form" class="auth-card hidden">
+          <h2>Verify your email</h2>
+          <p class="auth-note">Enter the current verification code from your latest email. Using the code avoids problems caused by expired email links.</p>
+          <label for="verify-email">Email address</label>
+          <input id="verify-email" type="email" required autocomplete="email">
+          <label for="verify-code">Verification code</label>
+          <input id="verify-code" type="text" inputmode="numeric" pattern="[0-9]{6,8}" maxlength="8" required autocomplete="one-time-code" placeholder="Verification code">
+          <button class="btn primary" type="submit">Verify Email</button>
+          <button id="resend-code-button" class="link-button" type="button">Send a new code</button>
+          <button id="back-to-auth" class="link-button" type="button">Back to sign in</button>
+        </form>
+
+        <form id="login-form" class="auth-card">
+          <h2>Sign in</h2>
+          <label for="login-email">Email address</label>
+          <input id="login-email" type="email" required autocomplete="email" placeholder="you@example.com">
+          <label for="login-password">Password</label>
+          <input id="login-password" type="password" required autocomplete="current-password" placeholder="Password">
+          <button class="btn primary" type="submit">Sign In & Continue</button>
+          <button id="reset-button" class="link-button" type="button">Forgot password?</button>
+          <p class="auth-note">Your account is separate from shipment tracking. A tracking code is never required to sign in.</p>
+        </form>
+      </div>
+      <div class="social-auth">
+        <div class="social-divider"><span>or continue with</span></div>
+        <div class="social-buttons">
+          <button id="google-auth-button" class="social-btn google-btn" type="button">Continue with Google</button>
+          <button id="apple-auth-button" class="social-btn apple-btn" type="button">Continue with Apple</button>
+        </div>
+        <p class="auth-note social-note">Google and Apple must be enabled in Supabase Authentication before customers can use them.</p>
+      </div>
+      <p class="auth-footer"><a href="mailto:johnsonmark42221@gmail.com">Need help?</a> · Equal World Shipping Company</p>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
+</body>
+</html>

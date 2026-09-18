@@ -1,1 +1,1 @@
-Keep the existing logo.jpg in the repository; it is referenced by index.html and is not included in this ZIP.
+Copy the existing logo.jpg from the repository into this folder when uploading. The HTML references logo.jpg.

@@ -1,81 +1,25 @@
-# Equal World Shipping Company
+# Equal World Shipping — Admin Dashboard
 
-Updated GitHub Pages frontend with live shipment tracking and customer live chat.
+## Included
+- Admin login screen
+- Dashboard statistics
+- Add, edit and delete shipments
+- Search shipments
+- Customer summary
+- Responsive layout
+- Demo shipment records including EWS100001 and EWS100002
 
-## Connected backend
-Supabase Edge Function:
-`https://ypedqbffumjwccqmgauo.supabase.co/functions/v1/equal-world-api-v2`
+## Demo login
+Email: admin@equalworldshipping.com
+Password: Admin123!
 
-The frontend uses the public API endpoint only. Supabase service-role/secret keys are not included in this project.
+## Important
+This package uses browser localStorage/sessionStorage as a demo-only data layer. It is NOT a secure production authentication or database system.
 
-## Live chat
-Visitors click the floating 💬 button, enter their name and email, and can send messages. The page checks for new support replies every 5 seconds.
-
-The existing Supabase backend stores chat sessions and messages.
-
-## Tracking
-The tracking form now reads shipment records from the Supabase backend rather than the old demo JavaScript object.
-
-Demo tracking code currently seeded in the database:
-`SWC123456789`
-
-## Third-party links
-- Google Maps links open location searches in Google Maps.
-- Telegram opens the company's Telegram contact.
-- Email uses a mailto link.
+For a production deployment, replace the demo login with Firebase Authentication (or another server-side authentication service), and replace localStorage shipment storage with a secured database/API. Do not store real administrator passwords in JavaScript.
 
 ## Deployment
-This project remains compatible with GitHub Pages because the frontend is plain HTML/CSS/JavaScript.
+Upload `index.html`, `dashboard.html`, `style.css`, `app.js`, and this README to the same GitHub Pages site. Open `index.html` to sign in.
 
-Important: before treating the chat as production-grade, secure the visitor chat session with a signed visitor token on the backend and restrict CORS to the deployed site origin. Resend remains in development mode until a verified sending domain/address is configured.
-
-
-### Important separation
-Customer registration and sign-in are independent from shipment tracking. Only the Track Shipment form reads a tracking code. Sign-in uses email and password only; the customer auth code never reads or submits the tracking-number field.
-
-
-## Testimonials and trust section
-The homepage now includes a customer-experience section with shipment tracking, live support, and customer-account trust points. The testimonial cards are explicitly labeled as sample feedback so they are not presented as verified customer reviews. Replace them with genuine customer feedback as you collect it.
-
-
-## Authentication and live-chat fix
-This version separates all three workflows:
-1. Shipment tracking — uses a tracking number only in the Track Shipment form.
-2. Customer authentication — email/password, Google OAuth, or Apple OAuth. No tracking number is read or required.
-3. Live Chat — name and email start the chat; the secure visitor token returned by the Edge Function is stored and sent for subsequent chat requests.
-
-### Google and Apple setup
-The website buttons are included, but OAuth providers must be enabled/configured in Supabase Authentication before they can complete sign-in.
-
-- Google: configure a Google OAuth Web client in Google Cloud and add the Supabase callback URL shown in the Supabase Google provider settings. Add the GitHub Pages site URL to the allowed origins/redirect URLs as appropriate.
-- Apple: configure Sign in with Apple in Apple Developer, create the required Services ID/key for web OAuth, and add the Supabase callback URL shown in the Supabase Apple provider settings.
-- Supabase Auth Redirect URLs must allow:
-  `https://eqws-creator.github.io/Equal-World-shipping/`
-
-Do not put Google client secrets, Apple private keys, Supabase service-role keys, Resend API keys, or AI API keys in this static website.
-
-
-## Email verification code
-The customer registration flow now asks for a 6-digit email verification code and includes a code entry screen plus resend-code action. The code is verified with Supabase Auth `verifyOtp`.
-
-### Required Supabase Auth email-template setting
-For Supabase to send a code instead of only a confirmation link, edit the **Confirm signup** email template in Supabase Auth and include `{{ .Token }}` in the email body. Supabase documents `{{ .Token }}` as the 6-digit OTP used for email verification. Also ensure the project's Auth email provider is configured and the GitHub Pages URL is in the Auth redirect allow list.
-
-The website itself does not contain an email secret. Do not place Resend API keys or Supabase service-role keys in frontend files.
-
-
-## Smoother account creation
-The signup flow now:
-- normalizes email addresses to lowercase;
-- does not ask for or use a tracking code;
-- shows a dedicated 6-digit verification step;
-- uses Supabase's signup-email resend flow rather than creating a separate OTP login session;
-- explains duplicate-account, invalid/expired-code, and rate-limit situations in customer-friendly language;
-- tells customers to check spam/junk folders;
-- keeps Google and Apple OAuth separate from email/password verification.
-
-For production reliability, configure Supabase's Auth email provider/SMTP and signup email template, and add the exact GitHub Pages URL to the Supabase Auth redirect allow list. Hosted Supabase projects require email confirmation by default, and redirect URLs must be configured for confirmation redirects.
-
-
-## Friendly admin dashboard
-The admin control center now has a mobile-friendly overview, quick actions, clearer statistics, recent activity cards, improved shipment management, and a more approachable live-chat interface. Admin authentication remains completely separate from customer authentication and shipment tracking.
+## Connecting to your public tracking page
+Your public tracking page should query the same backend database/API for real shipment records. This demo package intentionally does not expose localStorage records across devices or users.

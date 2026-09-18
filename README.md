@@ -55,14 +55,6 @@ The website buttons are included, but OAuth providers must be enabled/configured
 Do not put Google client secrets, Apple private keys, Supabase service-role keys, Resend API keys, or AI API keys in this static website.
 
 
-## Email confirmation link fix
-
-The improved package includes `confirm.html` so confirmation links can use Supabase's secure `{{ .TokenHash }}` without exposing the confirmation action to email-link scanners. In Supabase Auth → Email Templates → Confirm signup, use a link like:
-
-`https://eqws-creator.github.io/Equal-World-shipping/confirm.html?token_hash={{ .TokenHash }}&type=email`
-
-Keep the 6-digit `{{ .Token }}` in the email as a fallback so customers can still verify with the code on the homepage. The exact GitHub Pages URL must also be added under Supabase Auth URL Configuration → Redirect URLs. Supabase documents that redirect URLs must be allow-listed and that `{{ .TokenHash }}` can be used to build a custom confirmation link.
-
 ## Email verification code
 The customer registration flow now asks for a 6-digit email verification code and includes a code entry screen plus resend-code action. The code is verified with Supabase Auth `verifyOtp`.
 
@@ -84,7 +76,20 @@ The signup flow now:
 
 For production reliability, configure Supabase's Auth email provider/SMTP and signup email template, and add the exact GitHub Pages URL to the Supabase Auth redirect allow list. Hosted Supabase projects require email confirmation by default, and redirect URLs must be configured for confirmation redirects.
 
+## Email confirmation page fix
 
-### Google sign-in
+The GitHub Pages site must contain `confirm.html` in the repository root before this URL can work:
+`https://eqws-creator.github.io/Equal-World-shipping/confirm.html`
 
-The Google button uses Supabase `signInWithOAuth({ provider: "google" })`. The button cannot complete authentication until Google is enabled in Supabase Auth and a Google OAuth Web client is configured. In Google Cloud, add the website origin to Authorized JavaScript origins and the Supabase Auth callback URL shown by the Google provider to Authorized redirect URIs. In Supabase Auth URL Configuration, allow `https://eqws-creator.github.io/Equal-World-shipping/`.
+For the Supabase **Confirm signup** email template, use this link so Supabase supplies the real token hash:
+
+```html
+<p><a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email">Confirm email address</a></p>
+```
+
+Because this project sends `emailRedirectTo` as the website root, that produces a link to `confirm.html` when `redirectTo` is configured as:
+`https://eqws-creator.github.io/Equal-World-shipping/confirm.html`
+
+Alternatively, for the most robust static-site flow, use Supabase's built-in `{{ .ConfirmationURL }}` in the email template. Supabase documents `{{ .ConfirmationURL }}` as the generated confirmation URL and `{{ .TokenHash }}` as the value used to build a custom confirmation link.
+
+After uploading/committing `confirm.html` to GitHub Pages, wait for the Pages deployment to finish before testing the link again.

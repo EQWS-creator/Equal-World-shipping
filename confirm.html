@@ -4,18 +4,74 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Confirm Email - Equal World Shipping</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;background:#f4f7fb;color:#172033;display:grid;place-items:center;min-height:100vh;padding:20px}
+    .card{max-width:560px;width:100%;background:#fff;border-radius:16px;padding:32px;box-shadow:0 12px 40px rgba(0,0,0,.08);text-align:center}
+    h1{margin-top:0}.status{margin:18px 0;padding:14px;border-radius:10px;background:#f0f4f8}.success{background:#eaf8ef;color:#166534}.error{background:#fff0f0;color:#991b1b}
+    a,button{display:inline-block;border:0;border-radius:10px;padding:12px 18px;font-weight:700;text-decoration:none;cursor:pointer;background:#0b63ce;color:#fff;margin:6px}
+    .secondary{background:#e9eef5;color:#172033}
+    small{display:block;color:#667085;margin-top:18px;line-height:1.5}
+  </style>
 </head>
 <body>
-  <main class="auth-page">
-    <section class="auth-card">
-      <h1>Confirm your email</h1>
-      <p id="confirm-status">Tap the button below to verify your Equal World Shipping account.</p>
-      <button id="confirm-button" class="auth-submit" type="button">Confirm Email</button>
-      <p><a href="./#account">Return to Equal World Shipping</a></p>
-    </section>
+  <main class="card">
+    <h1>Email Confirmation</h1>
+    <div id="status" class="status">Checking your confirmation link…</div>
+    <div id="actions"></div>
+    <small>If the link has expired, return to the website and request a new verification email.</small>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="confirm.js"></script>
+  <script>
+    const SUPABASE_URL = "https://ypedqbffumjwccqmgauo.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yaUpKhGqxpHxRwEIJrSO3g_bIVhMNHE";
+    // The publishable key above is intentionally client-safe. Never put a service-role/secret key here.
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    const params = new URLSearchParams(window.location.search);
+    const tokenHash = params.get("token_hash");
+    const type = params.get("type") || "email";
+    const confirmationUrl = params.get("confirmation_url");
+    const status = document.getElementById("status");
+    const actions = document.getElementById("actions");
+
+    function home() {
+      return "https://eqws-creator.github.io/Equal-World-shipping/#account";
+    }
+
+    async function confirm() {
+      if (!tokenHash) {
+        if (confirmationUrl) {
+          status.className = "status";
+          status.textContent = "Your confirmation link is ready. Tap the button below to complete verification.";
+          const a = document.createElement("a");
+          a.href = confirmationUrl;
+          a.textContent = "Confirm Email";
+          actions.appendChild(a);
+          return;
+        }
+        status.className = "status error";
+        status.textContent = "This confirmation link is incomplete. Please request a new verification email from the website.";
+        return;
+      }
+
+      const { error } = await supabaseClient.auth.verifyOtp({ token_hash: tokenHash, type });
+      if (error) {
+        status.className = "status error";
+        status.textContent = "This confirmation link is invalid or has expired. Please request a new verification email.";
+        const a = document.createElement("a");
+        a.href = home();
+        a.textContent = "Return to Equal World Shipping";
+        actions.appendChild(a);
+        return;
+      }
+
+      status.className = "status success";
+      status.textContent = "Your email has been verified successfully. You can now use your Equal World Shipping account.";
+      const a = document.createElement("a");
+      a.href = home();
+      a.textContent = "Continue to Account";
+      actions.appendChild(a);
+    }
+    confirm();
+  </script>
 </body>
 </html>

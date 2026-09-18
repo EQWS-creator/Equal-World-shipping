@@ -69,7 +69,18 @@
             <label for="signup-password">Password</label>
             <input id="signup-password" type="password" required minlength="8" autocomplete="new-password" placeholder="Password (8+ characters)">
             <button class="btn primary" type="submit">Create Account</button>
-            <p class="auth-note">No tracking code is needed. A verification email will be sent before email/password sign-in.</p>
+            <p class="auth-note">No tracking code is needed. A 6-digit verification code will be sent to your email.</p>
+          </form>
+
+          <form id="verify-email-form" class="auth-card hidden">
+            <h3>Verify your email</h3>
+            <p class="auth-note">Enter the 6-digit code sent to your email address to finish creating your account.</p>
+            <label for="verify-email">Email address</label>
+            <input id="verify-email" type="email" required autocomplete="email" placeholder="you@example.com">
+            <label for="verify-code">Verification code</label>
+            <input id="verify-code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code" placeholder="6-digit code">
+            <button class="btn primary" type="submit">Verify Email</button>
+            <button id="resend-code-button" class="link-button" type="button">Resend code</button>
           </form>
 
           <form id="login-form" class="auth-card">

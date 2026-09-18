@@ -1,31 +1,23 @@
 const SUPABASE_URL = "https://ypedqbffumjwccqmgauo.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yaUpKhGqxpHxRwEIJrSO3g_bIVhMNHE";
 const PUBLIC_URL = "https://eqws-creator.github.io/Equal-World-shipping/";
-
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY
-);
-
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const authStatus = document.getElementById("auth-status");
 
 function safe(value) {
   return String(value ?? "").replace(/[&<>"']/g, "");
 }
-
 function showAuth(message, ok = false) {
   authStatus.innerHTML = `<div class="auth-message ${ok ? "ok" : "error"}">${message}</div>`;
+}
+function setVerifyVisible(show) {
+  document.getElementById("verify-email-form").classList.toggle("hidden", !show);
 }
 
 async function refreshAuth() {
   const { data: { session } } = await supabaseClient.auth.getSession();
-
   if (session) {
-    showAuth(
-      `Signed in as <b>${safe(session.user.email)}</b> · ` +
-      `<button id="logout-button" class="link-button" type="button">Log out</button>`,
-      true
-    );
+    showAuth(`Signed in as <b>${safe(session.user.email)}</b> · <button id="logout-button" class="link-button" type="button">Log out</button>`, true);
     document.getElementById("logout-button").onclick = async () => {
       await supabaseClient.auth.signOut();
       refreshAuth();
@@ -35,106 +27,88 @@ async function refreshAuth() {
   }
 }
 
-// IMPORTANT: Authentication is completely independent from shipment tracking.
-// This form never reads, validates, requires, or submits #trackingNumber.
+// Registration is completely independent from shipment tracking.
+// It never reads or submits the tracking-number field.
 document.getElementById("signup-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-
   const name = document.getElementById("signup-name").value.trim();
   const email = document.getElementById("signup-email").value.trim();
   const password = document.getElementById("signup-password").value;
-
-  if (password.length < 8) {
-    showAuth("Please use a password with at least 8 characters.");
-    return;
-  }
+  if (password.length < 8) return showAuth("Please use a password with at least 8 characters.");
 
   const { error } = await supabaseClient.auth.signUp({
     email,
     password,
-    options: {
-      data: { full_name: name },
-      emailRedirectTo: PUBLIC_URL
-    }
+    options: { data: { full_name: name }, emailRedirectTo: PUBLIC_URL }
   });
 
-  if (error) {
-    showAuth(error.message);
-    return;
-  }
+  if (error) return showAuth(error.message);
 
-  showAuth(
-    `Registration started for <b>${safe(email)}</b>. Check your inbox and click the verification link before signing in.`,
-    true
-  );
-  e.target.reset();
+  document.getElementById("verify-email").value = email;
+  setVerifyVisible(true);
+  showAuth(`A 6-digit verification code was sent to <b>${safe(email)}</b>. Enter it below to verify your email.`, true);
+});
+
+document.getElementById("verify-email-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("verify-email").value.trim();
+  const token = document.getElementById("verify-code").value.trim();
+
+  if (!/^\d{6}$/.test(token)) return showAuth("Enter the 6-digit verification code from your email.");
+
+  const { data, error } = await supabaseClient.auth.verifyOtp({
+    email,
+    token,
+    type: "email"
+  });
+
+  if (error) return showAuth(error.message);
+
+  setVerifyVisible(false);
+  showAuth(`Email verified successfully. Welcome, <b>${safe(data.user?.email || email)}</b>.`, true);
+});
+
+document.getElementById("resend-code-button").addEventListener("click", async () => {
+  const email = document.getElementById("verify-email").value.trim();
+  if (!email) return showAuth("Enter your email address first.");
+
+  const { error } = await supabaseClient.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: false }
+  });
+  if (error) return showAuth(error.message);
+  showAuth(`A new verification code was sent to <b>${safe(email)}</b>.`, true);
 });
 
 document.getElementById("login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-
-  // IMPORTANT: Login uses only email + password. No tracking code is involved.
   const email = document.getElementById("login-email").value.trim();
   const password = document.getElementById("login-password").value;
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) {
-    showAuth(error.message);
-    return;
-  }
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if (error) return showAuth(error.message);
 
   if (!data.user?.email_confirmed_at) {
     await supabaseClient.auth.signOut();
-    showAuth("Please verify your email address before signing in.");
-    return;
+    document.getElementById("verify-email").value = email;
+    setVerifyVisible(true);
+    return showAuth("Please verify your email with the 6-digit code before signing in.");
   }
-
-  showAuth(
-    `Welcome back, <b>${safe(data.user.email)}</b>. Your verified account is active.`,
-    true
-  );
+  showAuth(`Welcome back, <b>${safe(data.user.email)}</b>. Your verified account is active.`, true);
 });
 
 document.getElementById("reset-button").addEventListener("click", async () => {
   const email = document.getElementById("login-email").value.trim();
-
-  if (!email) {
-    showAuth("Enter your email address first, then tap Forgot password.");
-    return;
-  }
-
-  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: PUBLIC_URL + "#account"
-  });
-
-  showAuth(
-    error ? error.message : "Password reset instructions have been sent to your email.",
-    !error
-  );
+  if (!email) return showAuth("Enter your email address first, then tap Forgot password.");
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: PUBLIC_URL + "#account" });
+  showAuth(error ? error.message : "Password reset instructions have been sent to your email.", !error);
 });
 
 async function signInWithProvider(provider) {
-  const { error } = await supabaseClient.auth.signInWithOAuth({
-    provider,
-    options: {
-      redirectTo: PUBLIC_URL
-    }
-  });
-
+  const { error } = await supabaseClient.auth.signInWithOAuth({ provider, options: { redirectTo: PUBLIC_URL } });
   if (error) showAuth(error.message);
 }
-
-document.getElementById("google-auth-button").addEventListener("click", () => {
-  signInWithProvider("google");
-});
-
-document.getElementById("apple-auth-button").addEventListener("click", () => {
-  signInWithProvider("apple");
-});
-
+document.getElementById("google-auth-button").addEventListener("click", () => signInWithProvider("google"));
+document.getElementById("apple-auth-button").addEventListener("click", () => signInWithProvider("apple"));
 supabaseClient.auth.onAuthStateChange(() => refreshAuth());
 refreshAuth();

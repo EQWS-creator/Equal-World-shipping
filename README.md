@@ -53,3 +53,12 @@ The website buttons are included, but OAuth providers must be enabled/configured
   `https://eqws-creator.github.io/Equal-World-shipping/`
 
 Do not put Google client secrets, Apple private keys, Supabase service-role keys, Resend API keys, or AI API keys in this static website.
+
+
+## Email verification code
+The customer registration flow now asks for a 6-digit email verification code and includes a code entry screen plus resend-code action. The code is verified with Supabase Auth `verifyOtp`.
+
+### Required Supabase Auth email-template setting
+For Supabase to send a code instead of only a confirmation link, edit the **Confirm signup** email template in Supabase Auth and include `{{ .Token }}` in the email body. Supabase documents `{{ .Token }}` as the 6-digit OTP used for email verification. Also ensure the project's Auth email provider is configured and the GitHub Pages URL is in the Auth redirect allow list.
+
+The website itself does not contain an email secret. Do not place Resend API keys or Supabase service-role keys in frontend files.

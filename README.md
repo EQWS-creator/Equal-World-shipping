@@ -1,10 +1,9 @@
-# Equal World Shipping — AI-ready Live Chat
+# Equal World Shipping — Customer Auth + Live Chat
 
-The customer Live Chat is permanently integrated into the homepage.
+Homepage includes customer registration/login with verified email, shipment tracking, and permanent live chat.
 
-Current chat uses the secure Supabase visitor-token flow. The included `admin-ai-notes.md` describes the server-side AI integration needed for actual AI-generated replies and human takeover.
+Keep the existing `logo.jpg`.
 
-Keep `logo.jpg` from the existing repository.
+After uploading to GitHub Pages, follow AUTH_SETUP.md in Supabase. The live chat continues using the secure `equal-world-api-v2` function.
 
-Never put Supabase service-role keys or AI API keys in frontend JavaScript.
-Test tracking with `SWC123456789`.
+Tracking test: SWC123456789.

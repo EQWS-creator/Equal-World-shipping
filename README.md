@@ -28,3 +28,6 @@ Demo tracking code currently seeded in the database:
 This project remains compatible with GitHub Pages because the frontend is plain HTML/CSS/JavaScript.
 
 Important: before treating the chat as production-grade, secure the visitor chat session with a signed visitor token on the backend and restrict CORS to the deployed site origin. Resend remains in development mode until a verified sending domain/address is configured.
+
+## Security
+The live chat now uses a signed, expiring visitor token tied to its chat session. Public tracking returns only customer-safe shipment fields, and CORS is restricted to the configured website origin. Keep server secrets such as the Supabase service-role key, ADMIN_SESSION_SECRET, and Resend API key out of GitHub and frontend JavaScript.

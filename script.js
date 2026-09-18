@@ -2,10 +2,12 @@ const API = "https://ypedqbffumjwccqmgauo.supabase.co/functions/v1/equal-world-a
 
 document.getElementById("year").textContent = new Date().getFullYear();
 
-async function apiCall(action, payload = {}) {
+async function apiCall(action, payload = {}, authToken = "") {
+  const headers = {"Content-Type": "application/json"};
+  if (authToken) headers.Authorization = `Bearer ${authToken}`;
   const response = await fetch(API, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers,
     body: JSON.stringify({action, ...payload})
   });
   const data = await response.json().catch(() => ({}));
@@ -60,6 +62,7 @@ const chatBody = document.getElementById("chatBody");
 const chatError = document.getElementById("chatError");
 const chatStatus = document.getElementById("chatStatus");
 let chatSessionId = sessionStorage.getItem("eqws_chat_session");
+let chatVisitorToken = sessionStorage.getItem("eqws_chat_token");
 let chatPoll = null;
 
 chatToggle.addEventListener("click", () => chatPanel.classList.remove("hidden"));
@@ -68,7 +71,7 @@ chatClose.addEventListener("click", () => chatPanel.classList.add("hidden"));
 async function loadChatMessages() {
   if (!chatSessionId) return;
   try {
-    const data = await apiCall("chat_messages", {session_id: chatSessionId});
+    const data = await apiCall("chat_messages", {session_id: chatSessionId}, chatVisitorToken);
     const messages = data.messages || [];
     const box = document.getElementById("chatMessages");
     box.innerHTML = messages.map(m => `
@@ -94,8 +97,10 @@ async function startChat() {
   try {
     const data = await apiCall("chat_start", {visitor_name, visitor_email});
     chatSessionId = data.session_id || data.session?.id;
-    if (!chatSessionId) throw new Error("Unable to start chat.");
+    chatVisitorToken = data.visitor_token || "";
+    if (!chatSessionId || !chatVisitorToken) throw new Error("Unable to start a secure chat session.");
     sessionStorage.setItem("eqws_chat_session", chatSessionId);
+    sessionStorage.setItem("eqws_chat_token", chatVisitorToken);
     chatStart.classList.add("hidden");
     chatBody.classList.remove("hidden");
     await loadChatMessages();
@@ -115,7 +120,7 @@ document.getElementById("chatForm").addEventListener("submit", async (e) => {
   if (!message || !chatSessionId) return;
   chatStatus.textContent = "Sending…";
   try {
-    await apiCall("chat_message", {session_id: chatSessionId, message});
+    await apiCall("chat_message", {session_id: chatSessionId, message}, chatVisitorToken);
     input.value = "";
     chatStatus.textContent = "";
     await loadChatMessages();
@@ -124,7 +129,12 @@ document.getElementById("chatForm").addEventListener("submit", async (e) => {
   }
 });
 
-if (chatSessionId) {
+if (chatSessionId && !chatVisitorToken) {
+  sessionStorage.removeItem("eqws_chat_session");
+  chatSessionId = null;
+}
+
+if (chatSessionId && chatVisitorToken) {
   chatStart.classList.add("hidden");
   chatBody.classList.remove("hidden");
   loadChatMessages();

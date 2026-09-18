@@ -50,6 +50,41 @@
       </div></div>
     </section>
 
+
+    <section id="account" class="section light">
+      <div class="container narrow">
+        <p class="eyebrow">CUSTOMER ACCOUNT</p>
+        <h2>Sign in or create an account</h2>
+        <p>Your account is completely separate from shipment tracking. <strong>No tracking code is required to register or sign in.</strong></p>
+        <div id="auth-status" class="auth-status" aria-live="polite"></div>
+
+        <div class="auth-grid">
+          <form id="signup-form" class="auth-card">
+            <h3>Create account</h3>
+            <label for="signup-name">Full name</label>
+            <input id="signup-name" type="text" required autocomplete="name" placeholder="Full name">
+            <label for="signup-email">Email address</label>
+            <input id="signup-email" type="email" required autocomplete="email" placeholder="you@example.com">
+            <label for="signup-password">Password</label>
+            <input id="signup-password" type="password" required minlength="8" autocomplete="new-password" placeholder="Password (8+ characters)">
+            <button class="btn primary" type="submit">Create Account</button>
+            <p class="auth-note">A verification email will be sent. Verify your email before signing in.</p>
+          </form>
+
+          <form id="login-form" class="auth-card">
+            <h3>Sign in</h3>
+            <label for="login-email">Email address</label>
+            <input id="login-email" type="email" required autocomplete="email" placeholder="you@example.com">
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" required autocomplete="current-password" placeholder="Password">
+            <button class="btn primary" type="submit">Sign In</button>
+            <button id="reset-button" class="link-button" type="button">Forgot password?</button>
+            <p class="auth-note">Tracking codes are only used in the Track Shipment section.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+
     <section id="about" class="section light"><div class="container narrow">
       <p class="eyebrow">ABOUT US</p><h2>Equal World Shipping Company</h2>
       <p>We help customers move packages and freight across borders while keeping shipment information and customer support accessible online.</p>
@@ -84,6 +119,8 @@
   </section>
 
   <footer><div class="container footer"><span>© <span id="year"></span> Equal World Shipping Company</span><span>Worldwide Shipping & Logistics</span></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
+  <script src="auth.js"></script>
 </body>
 </html>

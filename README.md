@@ -28,3 +28,7 @@ Demo tracking code currently seeded in the database:
 This project remains compatible with GitHub Pages because the frontend is plain HTML/CSS/JavaScript.
 
 Important: before treating the chat as production-grade, secure the visitor chat session with a signed visitor token on the backend and restrict CORS to the deployed site origin. Resend remains in development mode until a verified sending domain/address is configured.
+
+
+### Important separation
+Customer registration and sign-in are independent from shipment tracking. Only the Track Shipment form reads a tracking code. Sign-in uses email and password only; the customer auth code never reads or submits the tracking-number field.

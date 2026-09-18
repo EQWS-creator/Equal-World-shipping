@@ -14,6 +14,16 @@ function setVerifyVisible(show) {
   document.getElementById("verify-email-form").classList.toggle("hidden", !show);
 }
 
+async function handleAuthRedirectError() {
+  const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
+  const params = new URLSearchParams(hash);
+  const error = params.get("error_description") || params.get("error");
+  if (error) {
+    showAuth(`Authentication could not be completed: ${safe(decodeURIComponent(error))}`);
+    history.replaceState({}, document.title, window.location.pathname + window.location.search);
+  }
+}
+
 async function refreshAuth() {
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) {
@@ -125,10 +135,15 @@ document.getElementById("reset-button").addEventListener("click", async () => {
 });
 
 async function signInWithProvider(provider) {
-  const { error } = await supabaseClient.auth.signInWithOAuth({ provider, options: { redirectTo: PUBLIC_URL } });
-  if (error) showAuth(error.message);
+  const { data, error } = await supabaseClient.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo: PUBLIC_URL }
+  });
+  if (error) return showAuth(`${provider === "google" ? "Google" : "Apple"} sign-in is not available yet: ${safe(error.message)}`);
+  if (!data?.url) showAuth("The sign-in provider did not return an authentication URL. Please try again.");
 }
 document.getElementById("google-auth-button").addEventListener("click", () => signInWithProvider("google"));
 document.getElementById("apple-auth-button").addEventListener("click", () => signInWithProvider("apple"));
 supabaseClient.auth.onAuthStateChange(() => refreshAuth());
+handleAuthRedirectError();
 refreshAuth();

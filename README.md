@@ -55,6 +55,14 @@ The website buttons are included, but OAuth providers must be enabled/configured
 Do not put Google client secrets, Apple private keys, Supabase service-role keys, Resend API keys, or AI API keys in this static website.
 
 
+## Email confirmation link fix
+
+The improved package includes `confirm.html` so confirmation links can use Supabase's secure `{{ .TokenHash }}` without exposing the confirmation action to email-link scanners. In Supabase Auth → Email Templates → Confirm signup, use a link like:
+
+`https://eqws-creator.github.io/Equal-World-shipping/confirm.html?token_hash={{ .TokenHash }}&type=email`
+
+Keep the 6-digit `{{ .Token }}` in the email as a fallback so customers can still verify with the code on the homepage. The exact GitHub Pages URL must also be added under Supabase Auth URL Configuration → Redirect URLs. Supabase documents that redirect URLs must be allow-listed and that `{{ .TokenHash }}` can be used to build a custom confirmation link.
+
 ## Email verification code
 The customer registration flow now asks for a 6-digit email verification code and includes a code entry screen plus resend-code action. The code is verified with Supabase Auth `verifyOtp`.
 
@@ -75,3 +83,8 @@ The signup flow now:
 - keeps Google and Apple OAuth separate from email/password verification.
 
 For production reliability, configure Supabase's Auth email provider/SMTP and signup email template, and add the exact GitHub Pages URL to the Supabase Auth redirect allow list. Hosted Supabase projects require email confirmation by default, and redirect URLs must be configured for confirmation redirects.
+
+
+### Google sign-in
+
+The Google button uses Supabase `signInWithOAuth({ provider: "google" })`. The button cannot complete authentication until Google is enabled in Supabase Auth and a Google OAuth Web client is configured. In Google Cloud, add the website origin to Authorized JavaScript origins and the Supabase Auth callback URL shown by the Google provider to Authorized redirect URIs. In Supabase Auth URL Configuration, allow `https://eqws-creator.github.io/Equal-World-shipping/`.

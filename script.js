@@ -19,6 +19,8 @@ function escapeHtml(value) {
   }[ch]));
 }
 
+// Shipment tracking and Live Chat are independent flows.
+// Tracking code is used only by trackingForm; chat actions never read trackingNumber.
 const trackingForm = document.getElementById("trackingForm");
 trackingForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -86,6 +88,7 @@ async function loadChatMessages() {
 async function startChat() {
   const visitor_name = document.getElementById("chatName").value.trim();
   const visitor_email = document.getElementById("chatEmail").value.trim();
+  // Intentionally do not read or require the shipment tracking number here.
   chatError.textContent = "";
   if (!visitor_name || !visitor_email) {
     chatError.textContent = "Please enter your name and email.";

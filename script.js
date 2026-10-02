@@ -1,11 +1,25 @@
 const API = "https://ypedqbffumjwccqmgauo.supabase.co/functions/v1/equal-world-api-v2";
+const SUPABASE_URL = "https://ypedqbffumjwccqmgauo.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_yaUpKhGqxpHxRwEIJrSO3g_bIVhMNHE";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const CHAT_MAX_FILE_BYTES = 25 * 1024 * 1024;
+const CHAT_ALLOWED_MIME = (mime) =>
+  mime.startsWith("image/") ||
+  mime.startsWith("video/") ||
+  mime.startsWith("audio/") ||
+  mime === "application/pdf";
 
 document.getElementById("year").textContent = new Date().getFullYear();
 
 async function apiCall(action, payload = {}) {
   const headers = {"Content-Type": "application/json"};
   const visitorToken = sessionStorage.getItem("eqws_visitor_token");
-  const visitorActions = new Set(["chat_messages", "chat_message"]);
+  const visitorActions = new Set([
+    "chat_messages",
+    "chat_message",
+    "chat_attachment_start",
+    "chat_attachment_complete"
+  ]);
   if (visitorToken && visitorActions.has(action)) {
     headers.Authorization = `Bearer ${visitorToken}`;
   }
@@ -90,24 +104,79 @@ chatClose.addEventListener("click", () => {
   chatToggle.setAttribute("aria-expanded", "false");
 });
 
+function safeSignedUrl(url) {
+  return typeof url === "string" && url.startsWith("https://") ? url : "";
+}
+
+function renderAttachment(attachment) {
+  const url = safeSignedUrl(attachment.signed_url || attachment.url || "");
+  const name = escapeHtml(attachment.file_name || "Attachment");
+  const mime = String(attachment.mime_type || "");
+
+  if (!url) {
+    return `<div class="chat-attachment-file">📎 ${name}</div>`;
+  }
+
+  if (mime.startsWith("image/")) {
+    return `<a class="chat-attachment" href="${escapeHtml(url)}" target="_blank" rel="noopener">
+      <img src="${escapeHtml(url)}" alt="${name}" loading="lazy">
+      <span>📎 ${name}</span>
+    </a>`;
+  }
+
+  if (mime.startsWith("video/")) {
+    return `<div class="chat-attachment"><video controls preload="metadata" src="${escapeHtml(url)}"></video><span>🎥 ${name}</span></div>`;
+  }
+
+  if (mime.startsWith("audio/")) {
+    return `<div class="chat-attachment"><audio controls preload="metadata" src="${escapeHtml(url)}"></audio><span>🎵 ${name}</span></div>`;
+  }
+
+  if (mime === "application/pdf") {
+    return `<a class="chat-attachment-file" href="${escapeHtml(url)}" target="_blank" rel="noopener">📄 ${name}</a>`;
+  }
+
+  return `<a class="chat-attachment-file" href="${escapeHtml(url)}" target="_blank" rel="noopener">📎 ${name}</a>`;
+}
+
+function renderChatMessage(message, attachmentsByMessage) {
+  const attachments = attachmentsByMessage.get(String(message.id)) || [];
+  return `
+    <div class="chat-message ${message.sender === "visitor" ? "visitor" : "agent"}">
+      <strong>${message.sender === "visitor" ? "You" : "Support"}</strong>
+      ${message.message ? `<p>${escapeHtml(message.message)}</p>` : ""}
+      ${attachments.map(renderAttachment).join("")}
+      <small>${message.sent_at ? escapeHtml(new Date(message.sent_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})) : ""}</small>
+    </div>`;
+}
+
 async function loadChatMessages() {
   if (!chatSessionId || chatRefreshBusy) return;
   chatRefreshBusy = true;
   try {
     const data = await apiCall("chat_messages", {session_id: chatSessionId});
     const messages = data.messages || [];
+    const attachments = data.attachments || [];
+    const attachmentsByMessage = new Map();
+
+    for (const attachment of attachments) {
+      const key = String(attachment.message_id || "");
+      if (!attachmentsByMessage.has(key)) attachmentsByMessage.set(key, []);
+      attachmentsByMessage.get(key).push(attachment);
+    }
+
     const box = document.getElementById("chatMessages");
     const wasNearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
-    box.innerHTML = messages.map(m => `
-      <div class="chat-message ${m.sender === "visitor" ? "visitor" : "agent"}">
-        <strong>${m.sender === "visitor" ? "You" : "Support"}</strong>
-        <p>${escapeHtml(m.message)}</p>
-        <small>${m.sent_at ? escapeHtml(new Date(m.sent_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})) : ""}</small>
-      </div>`).join("");
-    if (wasNearBottom || messages.length > chatLastMessageCount) box.scrollTop = box.scrollHeight;
+    box.innerHTML = messages.map(m => renderChatMessage(m, attachmentsByMessage)).join("");
+
+    if (wasNearBottom || messages.length > chatLastMessageCount) {
+      box.scrollTop = box.scrollHeight;
+    }
     if (messages.length > chatLastMessageCount && chatLastMessageCount > 0) {
       chatStatus.textContent = "New support message received.";
-      setTimeout(() => { if (chatStatus.textContent === "New support message received.") chatStatus.textContent = ""; }, 3500);
+      setTimeout(() => {
+        if (chatStatus.textContent === "New support message received.") chatStatus.textContent = "";
+      }, 3500);
     }
     chatLastMessageCount = messages.length;
   } catch (err) {
@@ -157,6 +226,111 @@ async function startChat() {
 }
 
 document.getElementById("chatStartBtn").addEventListener("click", startChat);
+
+const chatAttachBtn = document.getElementById("chatAttachBtn");
+const chatFileInput = document.getElementById("chatFileInput");
+const chatSelectedFiles = document.getElementById("chatSelectedFiles");
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function showSelectedFiles(files) {
+  chatSelectedFiles.innerHTML = files.map((file, i) => `
+    <div class="chat-selected-file">
+      <span>📎 ${escapeHtml(file.name)} <small>(${formatFileSize(file.size)})</small></span>
+      <button type="button" data-remove-file="${i}" aria-label="Remove ${escapeHtml(file.name)}">×</button>
+    </div>`).join("");
+}
+
+let selectedChatFiles = [];
+
+chatAttachBtn.addEventListener("click", () => {
+  if (!chatSessionId) {
+    chatStatus.textContent = "Start the chat before attaching a file.";
+    return;
+  }
+  chatFileInput.click();
+});
+
+chatFileInput.addEventListener("change", () => {
+  selectedChatFiles = Array.from(chatFileInput.files || []);
+  showSelectedFiles(selectedChatFiles);
+});
+
+chatSelectedFiles.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-remove-file]");
+  if (!button) return;
+  const index = Number(button.dataset.removeFile);
+  selectedChatFiles.splice(index, 1);
+  showSelectedFiles(selectedChatFiles);
+});
+
+async function uploadChatFile(file) {
+  if (!chatSessionId || !chatVisitorToken) throw new Error("Your chat session is not active.");
+  if (!file || !file.name) throw new Error("Please choose a file.");
+  if (file.size <= 0) throw new Error(`${file.name} is empty.`);
+  if (file.size > CHAT_MAX_FILE_BYTES) {
+    throw new Error(`${file.name} is larger than the 25 MB limit.`);
+  }
+  if (!CHAT_ALLOWED_MIME(file.type || "")) {
+    throw new Error(`${file.name}: only images, videos, audio files, and PDFs are allowed.`);
+  }
+
+  chatStatus.textContent = `Preparing ${file.name}…`;
+
+  const start = await apiCall("chat_attachment_start", {
+    session_id: chatSessionId,
+    file_name: file.name,
+    mime_type: file.type || "application/octet-stream",
+    file_size: file.size
+  });
+
+  const { error: uploadError } = await supabaseClient.storage
+    .from("chat-attachments")
+    .uploadToSignedUrl(start.path, start.token, file, {
+      contentType: file.type || "application/octet-stream"
+    });
+
+  if (uploadError) throw uploadError;
+
+  chatStatus.textContent = `Sending ${file.name}…`;
+
+  await apiCall("chat_attachment_complete", {
+    session_id: chatSessionId,
+    storage_path: start.path,
+    file_name: file.name,
+    mime_type: file.type || "application/octet-stream",
+    file_size: file.size
+  });
+}
+
+async function uploadSelectedChatFiles() {
+  if (!selectedChatFiles.length) return;
+  chatAttachBtn.disabled = true;
+
+  try {
+    for (const file of selectedChatFiles) {
+      await uploadChatFile(file);
+    }
+    selectedChatFiles = [];
+    chatFileInput.value = "";
+    chatSelectedFiles.innerHTML = "";
+    chatStatus.textContent = "Attachment sent.";
+    await loadChatMessages();
+    setTimeout(() => {
+      if (chatStatus.textContent === "Attachment sent.") chatStatus.textContent = "";
+    }, 2500);
+  } catch (err) {
+    chatStatus.textContent = err.message || "Unable to upload the attachment.";
+  } finally {
+    chatAttachBtn.disabled = false;
+  }
+}
+
+chatFileInput.addEventListener("change", uploadSelectedChatFiles);
 
 document.getElementById("chatForm").addEventListener("submit", async (e) => {
   e.preventDefault();

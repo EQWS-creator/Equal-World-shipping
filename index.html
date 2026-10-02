@@ -143,7 +143,13 @@
     </div>
     <div id="chatBody" class="chat-body hidden">
       <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
-      <form id="chatForm" class="chat-form"><input id="chatInput" type="text" maxlength="1000" placeholder="Type your message…" required><button class="btn primary" type="submit">Send</button></form>
+      <form id="chatForm" class="chat-form">
+        <button id="chatAttachBtn" class="chat-attach-btn" type="button" aria-label="Attach a file" title="Attach a photo, video, audio file, or PDF">📎</button>
+        <input id="chatInput" type="text" maxlength="1000" placeholder="Type your message…">
+        <button class="btn primary" type="submit">Send</button>
+      </form>
+      <input id="chatFileInput" class="hidden" type="file" accept="image/*,video/*,audio/*,application/pdf" multiple>
+      <div id="chatSelectedFiles" class="chat-selected-files" aria-live="polite"></div>
       <p id="chatStatus" class="chat-status"></p>
     </div>
   </section>
